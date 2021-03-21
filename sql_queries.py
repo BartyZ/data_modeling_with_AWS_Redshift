@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS songplays (
     start_time timestamp NOT NULL, 
     user_id int NOT NULL, 
     level varchar, 
-    song_id varchar, 
-    artist_id varchar, 
+    song_id varchar NOT NULL, 
+    artist_id varchar NOT NULL, 
     session_id int, 
     location varchar, 
     user_agent varchar,    
@@ -154,16 +154,19 @@ INSERT INTO songplays (start_time, user_id, level, song_id, artist_id, session_i
         e.ts as start_time, 
         e.userId as user_id, 
         e.level as level, 
-        s.song_id as song_id, 
-        s.artist_id as artist_id, 
+        nvl(s.song_id, 'n/a') as song_id, 
+        nvl(s.artist_id, 'n/a') as artist_id, 
         e.sessionId as session_id, 
         e.location as location, 
         e.userAgent as user_agent
 from staging_events e
      left join staging_songs s
-     on (e.song = s.title and e.artist = s.artist_name)
+     on (e.song = s.title 
+         and e.artist = s.artist_name
+         and e.length = s.duration)
 where e.ts is not null
 and e.userId is not null
+and e.page = 'NextSong'
 )
 """)
 
